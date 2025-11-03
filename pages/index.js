@@ -493,6 +493,33 @@ export default function Home() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* FCL Configuration */}
+              {config && Object.keys(config).length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-foreground">
+                      <Settings className="h-5 w-5" />
+                      FCL Configuration
+                    </CardTitle>
+                    <CardDescription>
+                      Current Flow Client Library configuration settings
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <details className="p-3 bg-muted rounded-lg">
+                      <summary className="text-sm font-medium cursor-pointer">
+                        View Configuration Details
+                      </summary>
+                      <div className="mt-2 bg-background p-3 rounded border overflow-auto max-h-48">
+                        <pre className="whitespace-pre-wrap break-all font-mono text-xs">
+                          {JSON.stringify(config, null, 2)}
+                        </pre>
+                      </div>
+                    </details>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         )

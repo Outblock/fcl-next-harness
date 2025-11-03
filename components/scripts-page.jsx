@@ -201,7 +201,7 @@ export function ScriptsPage({ onCommandClick, isLoading, onAddMessage }) {
                     className="font-mono text-xs"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Script arguments in JSON format. Each argument needs "type" and "value" fields only. Leave empty for scripts without parameters.
+                    Script arguments in JSON format. Each argument needs &quot;type&quot; and &quot;value&quot; fields only. Leave empty for scripts without parameters.
                   </p>
                 </div>
 

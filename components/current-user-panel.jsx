@@ -1,10 +1,7 @@
-import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 import { User, Wallet, Copy, LogOut, RefreshCw } from 'lucide-react'
 import { cn } from '../lib/utils'
-
-const ReactJson = dynamic(() => import('react-json-view'), { ssr: false })
 
 export function CurrentUserPanel({ currentUser, config, onLogout, onRefresh }) {
   const copyToClipboard = (text) => {
@@ -141,36 +138,9 @@ export function CurrentUserPanel({ currentUser, config, onLogout, onRefresh }) {
                 Raw User Data
               </summary>
               <div className="mt-2 bg-background p-2 rounded border overflow-auto max-h-48">
-                <ReactJson
-                  src={currentUser}
-                  theme={{
-                    base00: 'transparent',
-                    base01: '#ffffff',
-                    base02: '#ffffff',
-                    base03: '#888888',
-                    base04: '#ffffff',
-                    base05: '#ffffff',
-                    base06: '#66d9ef',
-                    base07: '#f92672',
-                    base08: '#f92672',
-                    base09: '#fd971f',
-                    base0A: '#e6db74',
-                    base0B: '#a6e22e',
-                    base0C: '#66d9ef',
-                    base0D: '#66d9ef',
-                    base0E: '#ae81ff',
-                    base0F: '#fd971f'
-                  }}
-                  collapsed={1}
-                  displayDataTypes={false}
-                  displayObjectSize={false}
-                  enableClipboard={true}
-                  style={{
-                    backgroundColor: 'transparent',
-                    fontSize: '11px',
-                    fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace'
-                  }}
-                />
+                <pre className="whitespace-pre-wrap break-all font-mono text-xs">
+                  {JSON.stringify(currentUser, null, 2)}
+                </pre>
               </div>
             </details>
           </div>
@@ -180,47 +150,6 @@ export function CurrentUserPanel({ currentUser, config, onLogout, onRefresh }) {
             <p className="text-sm">No user connected</p>
             <p className="text-xs">Use FCL commands in the sidebar to authenticate</p>
           </div>
-        )}
-
-        {/* Configuration */}
-        {config && Object.keys(config).length > 0 && (
-          <details className="p-3 bg-muted rounded-lg">
-            <summary className="text-sm font-medium cursor-pointer">
-              FCL Configuration
-            </summary>
-            <div className="mt-2 bg-background p-2 rounded border overflow-auto max-h-48">
-              <ReactJson
-                src={config}
-                theme={{
-                  base00: 'transparent',
-                  base01: '#ffffff',
-                  base02: '#ffffff',
-                  base03: '#888888',
-                  base04: '#ffffff',
-                  base05: '#ffffff',
-                  base06: '#66d9ef',
-                  base07: '#f92672',
-                  base08: '#f92672',
-                  base09: '#fd971f',
-                  base0A: '#e6db74',
-                  base0B: '#a6e22e',
-                  base0C: '#66d9ef',
-                  base0D: '#66d9ef',
-                  base0E: '#ae81ff',
-                  base0F: '#fd971f'
-                }}
-                collapsed={1}
-                displayDataTypes={false}
-                displayObjectSize={false}
-                enableClipboard={true}
-                style={{
-                  backgroundColor: 'transparent',
-                  fontSize: '11px',
-                  fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace'
-                }}
-              />
-            </div>
-          </details>
         )}
       </CardContent>
     </Card>

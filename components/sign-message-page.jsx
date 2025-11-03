@@ -115,7 +115,7 @@ export function SignMessagePage({ onCommandClick, isLoading, onAddMessage }) {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Uses Flow blockchain's native signing capabilities through FCL
+            Uses Flow blockchain&apos;s native signing capabilities through FCL
           </p>
         </div>
       </div>
