@@ -1,5 +1,6 @@
 import * as fcl from "@onflow/fcl"
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from 'next/router'
 import "../flow/config"
 import useCurrentUser from "../hooks/use-current-user"
 import useConfig from "../hooks/use-config"
@@ -31,6 +32,7 @@ const WC_METADATA = {
 }
 
 export default function Home() {
+  const router = useRouter()
   const currentUser = useCurrentUser()
   const config = useConfig()
   const [services, setServices] = useState([])
@@ -77,6 +79,28 @@ export default function Home() {
     setConnectionStats({ requests: 0, responses: 0, errors: 0 })
   }
 
+  // Handle page change with router
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+    const pageMap = {
+      'dashboard': '/',
+      'scripts': '/?tab=scripts',
+      'transactions': '/?tab=transactions',  
+      'signMessage': '/?tab=signMessage',
+      'messages': '/?tab=messages',
+      'user': '/?tab=user'
+    }
+    router.push(pageMap[page] || '/', undefined, { shallow: true })
+  }
+
+  // Initialize page from URL on mount
+  useEffect(() => {
+    const { tab } = router.query
+    if (tab && ['scripts', 'transactions', 'signMessage', 'messages', 'user'].includes(tab)) {
+      setCurrentPage(tab)
+    }
+  }, [router.query])
+
   async function clickHandler(fn, args = null) {
     setIsLoading(true)
     try {
@@ -112,6 +136,13 @@ export default function Home() {
 
   const handleStandardLogin = async () => {
     try {
+      // Set custom endpoint if provided
+      const endpoint = discoveryWalletInputRef?.current?.value
+      if (endpoint && endpoint !== 'http://localhost:3000/authn') {
+        fcl.config().put("discovery.wallet", endpoint)
+        addMessage('request', `Setting custom discovery.wallet to: ${endpoint}`, 'Config')
+      }
+      
       addMessage('request', `Attempting login with method: ${authMethod}`, 'FCL Authenticate')
       
       // Set the wallet method configuration
@@ -411,28 +442,13 @@ export default function Home() {
                           placeholder="http://localhost:3000/authn"
                         />
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={handleStandardLogin}
-                          className="flex-1"
-                          disabled={isLoading}
-                        >
-                          Connect with FCL ({authMethod.split('/')[0]})
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            const endpoint = discoveryWalletInputRef?.current?.value
-                            if (endpoint) {
-                              fcl.config().put("discovery.wallet", endpoint)
-                              addMessage('request', `Setting discovery.wallet to: ${endpoint}`, 'Config')
-                            }
-                          }}
-                          variant="outline"
-                          disabled={isLoading}
-                        >
-                          Set Endpoint
-                        </Button>
-                      </div>
+                      <Button
+                        onClick={handleStandardLogin}
+                        className="w-full"
+                        disabled={isLoading}
+                      >
+                        Connect with FCL ({authMethod.split('/')[0]})
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -484,7 +500,7 @@ export default function Home() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setCurrentPage('user')}
+                          onClick={() => handlePageChange('user')}
                         >
                           View Details
                         </Button>
@@ -538,7 +554,7 @@ export default function Home() {
       isLoading={isLoading}
       currentNetwork={currentNetwork}
       currentPage={currentPage}
-      onPageChange={setCurrentPage}
+      onPageChange={handlePageChange}
       onNetworkChange={setCurrentNetwork}
       onAddMessage={addMessage}
       messages={messages}
