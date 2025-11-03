@@ -8,6 +8,7 @@ import { Label } from './ui/label'
 import { Badge } from './ui/badge'
 import { Separator } from './ui/separator'
 import { Zap, CheckCircle2, AlertCircle, Loader2, Copy, Code, PlayCircle, Clock, Hash, FileText } from 'lucide-react'
+import * as fcl from "@onflow/fcl"
 import { COMMANDS } from '../cmds'
 
 const TRANSACTION_EXAMPLES = [
@@ -16,7 +17,7 @@ const TRANSACTION_EXAMPLES = [
     name: 'Mutate 1 (No Arguments)',
     description: 'Basic transaction without arguments',
     cadence: `transaction() {
-  prepare(acct: AuthAccount) {
+  prepare(signer: auth(Storage, BorrowValue) &Account) {
     log(acct)
   }
 }`,
@@ -29,13 +30,13 @@ const TRANSACTION_EXAMPLES = [
     name: 'Mutate 2 (With Arguments)', 
     description: 'Transaction with parameters',
     cadence: `transaction(greeting: String) {
-  prepare(acct: AuthAccount) {
+  prepare(signer: auth(Storage, BorrowValue) &Account) {
     log(acct)
     log(greeting)
   }
 }`,
     arguments: [
-      { name: 'greeting', type: 'String', value: 'Hello Flow!' }
+      { type: 'String', value: 'Hello Flow!' }
     ],
     gasLimit: 100,
     command: 'Mutate 2 (with args)'
@@ -51,9 +52,6 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
   const [transactionResult, setTransactionResult] = useState(null)
   const [executionTime, setExecutionTime] = useState(null)
 
-  const transactionCommands = COMMANDS.filter(cmd => 
-    ['Mutate 1 (no args)', 'Mutate 2 (with args)'].includes(cmd.LABEL)
-  )
 
   const currentExample = TRANSACTION_EXAMPLES.find(ex => ex.id === selectedTransaction)
 
@@ -69,7 +67,7 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
   }
 
   const handleSendTransaction = async () => {
-    if (!currentExample) return
+    if (!customCadence.trim()) return
 
     setTransactionStatus('running')
     setTransactionResult(null)
@@ -78,19 +76,39 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
     const startTime = Date.now()
 
     try {
-      const cmd = transactionCommands.find(c => c.LABEL === currentExample.command)
-      if (cmd) {
-        const result = await onCommandClick(cmd.CMD)
-        const endTime = Date.now()
-        const duration = endTime - startTime
-
-        setTransactionResult(result)
-        setExecutionTime(duration)
-        setTransactionStatus('success')
-        onAddMessage?.('response', `Transaction executed: ${result}`, 'Transaction')
-      } else {
-        throw new Error('Transaction command not found')
+      // Parse arguments if provided
+      let args = []
+      if (customArguments.trim()) {
+        try {
+          args = JSON.parse(customArguments)
+        } catch (parseError) {
+          throw new Error('Invalid JSON format in arguments')
+        }
       }
+
+      onAddMessage?.('request', `Executing transaction with ${args.length} arguments`, 'Transaction')
+
+      // Execute the transaction using FCL mutate
+      const mutateConfig = {
+        cadence: customCadence,
+        gasLimit: gasLimit
+      }
+
+      // Only add args if there are any
+      if (args.length > 0) {
+        mutateConfig.args = (arg, t) => args.map(a => arg(a.value, t[a.type]))
+      }
+
+      const result = await fcl.mutate(mutateConfig)
+
+      const endTime = Date.now()
+      const duration = endTime - startTime
+
+      setTransactionResult(result)
+      setExecutionTime(duration)
+      setTransactionStatus('success')
+      onAddMessage?.('response', `Transaction executed successfully: ${result}`, 'Transaction')
+      
     } catch (error) {
       const endTime = Date.now()
       const duration = endTime - startTime
@@ -98,7 +116,7 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
       setExecutionTime(duration)
       setTransactionStatus('error')
       setTransactionResult({ error: error.message })
-      onAddMessage?.('error', error.message || 'Transaction failed', 'Transaction')
+      onAddMessage?.('error', error.message || 'Transaction execution failed', 'Transaction')
     }
 
     setTimeout(() => setTransactionStatus('idle'), 5000)
