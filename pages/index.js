@@ -20,7 +20,7 @@ import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
-import { Wallet, Settings, Activity, Users, Network, CheckCircle, AlertCircle } from "lucide-react"
+import { Wallet, Settings, Activity, Users, Network, CheckCircle, AlertCircle, Plus, Trash2 } from "lucide-react"
 import { cn } from "../lib/utils"
 
 const WC_PROJECT_ID = process.env.NEXT_PUBLIC_WC_PROJECT_ID
@@ -36,8 +36,11 @@ export default function Home() {
   const currentUser = useCurrentUser()
   const config = useConfig()
   const [services, setServices] = useState([])
+  const [customWalletServices, setCustomWalletServices] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const discoveryWalletInputRef = useRef(null)
+  const walletNameInputRef = useRef(null)
+  const displayMethodRef = useRef(null)
   const [isPluginAdded, setIsPluginAdded] = useState(false)
   const [messages, setMessages] = useState([])
   const [connectionStats, setConnectionStats] = useState({ requests: 0, responses: 0, errors: 0 })
@@ -190,6 +193,86 @@ export default function Home() {
       })
     if (config && config["discovery.authn.endpoint"]) fetchServices()
   }, [config])
+
+  // Load custom wallet services from localStorage
+  useEffect(() => {
+    const loadCustomServices = () => {
+      try {
+        const stored = localStorage.getItem('fcl-custom-wallet-services')
+        if (stored) {
+          setCustomWalletServices(JSON.parse(stored))
+        }
+      } catch (error) {
+        console.error('Error loading custom wallet services:', error)
+      }
+    }
+    loadCustomServices()
+  }, [])
+
+  // Save custom wallet services to localStorage whenever they change
+  const saveCustomServices = (services) => {
+    try {
+      localStorage.setItem('fcl-custom-wallet-services', JSON.stringify(services))
+    } catch (error) {
+      console.error('Error saving custom wallet services:', error)
+    }
+  }
+
+  // Add custom wallet service
+  const addCustomWalletService = (name, endpoint, strategy = 'POP/RPC') => {
+    const newService = {
+      id: Date.now().toString(),
+      provider: {
+        name: name,
+        icon: '/favicon.ico', // Default icon
+        address: endpoint
+      },
+      isCustom: true,
+      endpoint: endpoint,
+      strategy: strategy
+    }
+    const updatedServices = [...customWalletServices, newService]
+    setCustomWalletServices(updatedServices)
+    saveCustomServices(updatedServices)
+  }
+
+  // Remove custom wallet service
+  const removeCustomWalletService = (id) => {
+    const updatedServices = customWalletServices.filter(service => service.id !== id)
+    setCustomWalletServices(updatedServices)
+    saveCustomServices(updatedServices)
+  }
+
+  // Handle custom wallet service connection
+  const handleCustomWalletConnect = async (customService) => {
+    try {
+      setIsLoading(true)
+      
+      // Configure FCL with custom wallet endpoint and method
+      const config = fcl.config()
+        .put('discovery.wallet.method', customService.strategy || 'POP/RPC')
+        .put('discovery.wallet.method.default', customService.endpoint)
+        .put('challenge.handshake', customService.endpoint)
+      
+      // Also set the wallet endpoint for discovery
+      if (customService.endpoint) {
+        config.put('discovery.wallet', customService.endpoint)
+      }
+      
+      await config
+      
+      addMessage('request', `FCL Config: wallet endpoint="${customService.endpoint}", method="${customService.strategy || 'POP/RPC'}"`, 'Custom Wallet')
+      
+      // Authenticate with the configured wallet
+      const user = await fcl.authenticate()
+      addMessage('response', `Successfully connected to ${customService.provider.name}`, 'Custom Wallet')
+    } catch (error) {
+      console.error('Custom wallet connection error:', error)
+      addMessage('error', error.message || `Connection to ${customService.provider.name} failed`, 'Custom Wallet')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     require("../decorate")
@@ -361,95 +444,187 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {services?.length > 0 ? (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {services.map(service => (
-                        <Button 
-                          key={service.provider.address}
-                          onClick={() => clickHandler(fcl.authenticate, { service })}
-                          variant="outline"
-                          className="w-full justify-start h-16 p-4 hover:bg-accent transition-all duration-200"
+                  {(services?.length > 0 || customWalletServices?.length > 0) ? (
+                    <>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {/* Discovered Services */}
+                        {services?.map(service => (
+                          <Button 
+                            key={service.provider.address}
+                            onClick={() => clickHandler(fcl.authenticate, { service })}
+                            variant="outline"
+                            className="w-full justify-start h-16 p-4 hover:bg-accent transition-all duration-200"
+                            disabled={isLoading}
+                          >
+                            <div className="flex items-center w-full">
+                              <div className="mr-4 flex-shrink-0">
+                                <Image
+                                  src={service.provider.icon}
+                                  alt="Wallet Icon"
+                                  width={32}
+                                  height={32}
+                                  className="rounded"
+                                />
+                              </div>
+                              <div className="text-left flex-1">
+                                <div className="font-semibold text-foreground">{service.provider.name}</div>
+                                <div className="text-xs text-muted-foreground">FCL Discovery Service</div>
+                              </div>
+                            </div>
+                          </Button>
+                        ))}
+                        
+                        {/* Custom Services */}
+                        {customWalletServices?.map(service => (
+                          <div key={service.id} className="relative">
+                            <Button 
+                              onClick={() => handleCustomWalletConnect(service)}
+                              variant="outline"
+                              className="w-full justify-start h-16 p-4 hover:bg-accent transition-all duration-200 pr-12"
+                              disabled={isLoading}
+                            >
+                              <div className="flex items-center w-full">
+                                <div className="mr-4 flex-shrink-0">
+                                  <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                    <Wallet className="h-4 w-4 text-white" />
+                                  </div>
+                                </div>
+                                <div className="text-left flex-1">
+                                  <div className="font-semibold text-foreground">{service.provider.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Custom • {service.strategy || 'POP/RPC'}
+                                  </div>
+                                </div>
+                              </div>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                              onClick={() => {
+                                removeCustomWalletService(service.id)
+                                addMessage('response', `Removed custom wallet: ${service.provider.name}`, 'Custom Wallet')
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* FCL Connect Button */}
+                      <div className="pt-4 border-t">
+                        <Button
+                          onClick={handleStandardLogin}
+                          className="w-full"
                           disabled={isLoading}
                         >
-                          <div className="flex items-center w-full">
-                            <div className="mr-4 flex-shrink-0">
-                              <Image
-                                src={service.provider.icon}
-                                alt="Wallet Icon"
-                                width={32}
-                                height={32}
-                                className="rounded"
-                              />
-                            </div>
-                            <div className="text-left flex-1">
-                              <div className="font-semibold text-foreground">{service.provider.name}</div>
-                              <div className="text-xs text-muted-foreground">FCL Discovery Service</div>
-                            </div>
-                          </div>
+                          Connect with FCL ({authMethod.split('/')[0]})
                         </Button>
-                      ))}
-                    </div>
+                        <p className="text-xs text-muted-foreground mt-2 text-center">
+                          Or use FCL with {authMethod} authentication method
+                        </p>
+                      </div>
+                    </>
                   ) : (
-                    <div className="text-center text-muted-foreground py-8">
-                      <Wallet className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                      <p>No wallet services discovered</p>
-                      <p className="text-xs">Check network connection or use custom configuration</p>
+                    <div className="space-y-4">
+                      <div className="text-center text-muted-foreground py-4">
+                        <Wallet className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                        <p>No wallet services available</p>
+                        <p className="text-xs">Add custom wallets using the form below or check network connection</p>
+                      </div>
+                      
+                      {/* FCL Connect Button for no discovered services */}
+                      <div className="pt-4 border-t">
+                        <Button
+                          onClick={handleStandardLogin}
+                          className="w-full"
+                          disabled={isLoading}
+                        >
+                          Connect with FCL ({authMethod.split('/')[0]})
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-2 text-center">
+                          Use FCL with {authMethod} authentication method
+                        </p>
+                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              {/* Custom Wallet Configuration */}
+              {/* Add Custom Wallet */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Settings className="h-5 w-5" />
-                    Custom Wallet Configuration
+                    <Plus className="h-5 w-5" />
+                    Add Custom Wallet
                   </CardTitle>
                   <CardDescription>
-                    Configure authentication method and custom endpoints
+                    Add a custom wallet service to your available wallets list
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* Standard FCL Authentication with Method Selection */}
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="auth-method" className="text-sm">
-                          Authentication Method
-                        </Label>
-                        <Select value={authMethod} onValueChange={setAuthMethod}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select authentication method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {authMethods.map((method) => (
-                              <SelectItem key={method.value} value={method.value}>
-                                {method.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="custom-endpoint" className="text-sm">
-                          Custom Wallet Endpoint (Optional)
-                        </Label>
-                        <Input 
-                          ref={discoveryWalletInputRef} 
-                          id="custom-endpoint"
-                          defaultValue="http://localhost:3000/authn"
-                          placeholder="http://localhost:3000/authn"
-                        />
-                      </div>
-                      <Button
-                        onClick={handleStandardLogin}
-                        className="w-full"
-                        disabled={isLoading}
-                      >
-                        Connect with FCL ({authMethod.split('/')[0]})
-                      </Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="wallet-name" className="text-sm">
+                        Wallet Name
+                      </Label>
+                      <Input 
+                        id="wallet-name"
+                        placeholder="My Custom Wallet"
+                        ref={walletNameInputRef}
+                      />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="wallet-endpoint" className="text-sm">
+                        Wallet Endpoint
+                      </Label>
+                      <Input 
+                        ref={discoveryWalletInputRef} 
+                        id="wallet-endpoint"
+                        placeholder="http://localhost:3000/authn"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm">Authentication Strategy</Label>
+                      <Select defaultValue="POP/RPC" ref={displayMethodRef}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select authentication strategy" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="POP/RPC">POP/RPC (Popup)</SelectItem>
+                          <SelectItem value="IFRAME/RPC">IFRAME/RPC (Embedded)</SelectItem>
+                          <SelectItem value="TAB/RPC">TAB/RPC (New Tab)</SelectItem>
+                          <SelectItem value="HTTP/POST">HTTP/POST</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Choose the FCL authentication strategy for this wallet
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        const walletName = walletNameInputRef.current?.value?.trim()
+                        const walletEndpoint = discoveryWalletInputRef.current?.value?.trim()
+                        const strategy = displayMethodRef.current?.value || 'POP/RPC'
+                        
+                        if (walletName && walletEndpoint) {
+                          addCustomWalletService(walletName, walletEndpoint, strategy)
+                          addMessage('response', `Added custom wallet: ${walletName} (${strategy})`, 'Custom Wallet')
+                          
+                          // Clear inputs
+                          walletNameInputRef.current.value = ''
+                          discoveryWalletInputRef.current.value = ''
+                        } else {
+                          addMessage('error', 'Please provide both wallet name and endpoint', 'Custom Wallet')
+                        }
+                      }}
+                      className="w-full"
+                      disabled={isLoading}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add to Wallet List
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
