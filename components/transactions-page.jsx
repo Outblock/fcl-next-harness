@@ -51,9 +51,43 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
   const [transactionStatus, setTransactionStatus] = useState('idle')
   const [transactionResult, setTransactionResult] = useState(null)
   const [executionTime, setExecutionTime] = useState(null)
+  const [txId, setTxId] = useState(null)
+  const [txStatus, setTxStatus] = useState(null)
+  const [txError, setTxError] = useState(null)
 
 
   const currentExample = TRANSACTION_EXAMPLES.find(ex => ex.id === selectedTransaction)
+
+  // Monitor transaction status after txId is available
+  const monitorTransactionStatus = async (transactionId) => {
+    try {
+      setTxId(transactionId)
+      setTxStatus('PENDING')
+      setTxError(null)
+      onAddMessage?.('request', `Monitoring transaction: ${transactionId}`, 'Transaction Status')
+      
+      // Use FCL tx to monitor transaction status
+      const txStatus = await fcl.tx(transactionId).onceSealed()
+      
+      if (txStatus.status === 4) { // SEALED
+        if (txStatus.statusCode === 0) {
+          setTxStatus('SEALED_SUCCESS')
+          onAddMessage?.('response', `Transaction sealed successfully: ${transactionId}`, 'Transaction Status')
+        } else {
+          setTxStatus('SEALED_ERROR')
+          setTxError(txStatus.errorMessage || 'Transaction failed with unknown error')
+          onAddMessage?.('error', `Transaction failed: ${txStatus.errorMessage || 'Unknown error'}`, 'Transaction Status')
+        }
+      } else {
+        setTxStatus('UNKNOWN')
+        onAddMessage?.('response', `Transaction status: ${txStatus.status}`, 'Transaction Status')
+      }
+    } catch (error) {
+      setTxStatus('ERROR')
+      setTxError(error.message)
+      onAddMessage?.('error', `Error monitoring transaction: ${error.message}`, 'Transaction Status')
+    }
+  }
 
   // Update form when example changes
   const handleExampleChange = (exampleId) => {
@@ -72,6 +106,9 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
     setTransactionStatus('running')
     setTransactionResult(null)
     setExecutionTime(null)
+    setTxId(null)
+    setTxStatus(null)
+    setTxError(null)
 
     const startTime = Date.now()
 
@@ -99,15 +136,18 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
         mutateConfig.args = (arg, t) => args.map(a => arg(a.value, t[a.type]))
       }
 
-      const result = await fcl.mutate(mutateConfig)
+      const transactionId = await fcl.mutate(mutateConfig)
 
       const endTime = Date.now()
       const duration = endTime - startTime
 
-      setTransactionResult(result)
+      setTransactionResult(transactionId)
       setExecutionTime(duration)
       setTransactionStatus('success')
-      onAddMessage?.('response', `Transaction executed successfully: ${result}`, 'Transaction')
+      onAddMessage?.('response', `Transaction submitted with ID: ${transactionId}`, 'Transaction')
+      
+      // Start monitoring transaction status
+      monitorTransactionStatus(transactionId)
       
     } catch (error) {
       const endTime = Date.now()
@@ -295,6 +335,69 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
                   )}
                 </div>
 
+                {/* Transaction ID */}
+                {txId && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Transaction ID</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(txId)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="p-3 bg-muted rounded-lg">
+                      <code className="text-xs font-mono break-all">
+                        {txId}
+                      </code>
+                    </div>
+                  </div>
+                )}
+
+                {/* On-chain Status */}
+                {txStatus && (
+                  <div className="flex items-center space-x-3 p-3 rounded-lg border">
+                    {txStatus === 'PENDING' && (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                        <span className="text-sm text-blue-600">Transaction pending on blockchain...</span>
+                      </>
+                    )}
+                    {txStatus === 'SEALED_SUCCESS' && (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <span className="text-sm text-green-600">Transaction sealed successfully</span>
+                      </>
+                    )}
+                    {txStatus === 'SEALED_ERROR' && (
+                      <>
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                        <span className="text-sm text-red-600">Transaction failed on blockchain</span>
+                      </>
+                    )}
+                    {(txStatus === 'ERROR' || txStatus === 'UNKNOWN') && (
+                      <>
+                        <AlertCircle className="h-4 w-4 text-yellow-500" />
+                        <span className="text-sm text-yellow-600">Transaction status unknown</span>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {txError && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-red-600">Error Details</Label>
+                    <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
+                      <pre className="text-xs text-red-800 dark:text-red-200 whitespace-pre-wrap">
+                        {txError}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
                 {/* Execution Time */}
                 {executionTime !== null && (
                   <div className="flex items-center space-x-2">
@@ -354,41 +457,6 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
             </CardContent>
           </Card>
 
-          {/* Transaction Preview */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-foreground">
-                <FileText className="h-5 w-5" />
-                Transaction Preview
-              </CardTitle>
-              <CardDescription>
-                Preview of the transaction that will be executed
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium text-muted-foreground">CADENCE CODE</Label>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <pre className="text-xs font-mono whitespace-pre-wrap overflow-auto max-h-32">
-                      {customCadence}
-                    </pre>
-                  </div>
-                </div>
-                
-                {customArguments && (
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium text-muted-foreground">ARGUMENTS</Label>
-                    <div className="p-3 bg-muted rounded-lg">
-                      <pre className="text-xs font-mono whitespace-pre-wrap overflow-auto">
-                        {customArguments || '[]'}
-                      </pre>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
