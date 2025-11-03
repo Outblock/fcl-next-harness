@@ -152,9 +152,9 @@ export default function Home() {
       fcl.config().put('discovery.wallet.method.default', authMethod)
       addMessage('request', `Set discovery.wallet.method.default to: ${authMethod}`, 'Config')
       
-      // Authenticate using FCL authn
-      const user = await fcl.authenticate()
-      addMessage('response', `Successfully authenticated with ${authMethod}`, 'FCL Authenticate')
+      // Reauthenticate using FCL authn (allows switching wallets)
+      const user = await fcl.reauthenticate()
+      addMessage('response', `Successfully authenticated with ${authMethod}`, 'FCL Reauthenticate')
       
     } catch (error) {
       addMessage('error', error.message || `Authentication with ${authMethod} failed`, 'FCL Authenticate')
@@ -263,8 +263,8 @@ export default function Home() {
       
       addMessage('request', `FCL Config: wallet endpoint="${customService.endpoint}", method="${customService.strategy || 'POP/RPC'}"`, 'Custom Wallet')
       
-      // Authenticate with the configured wallet
-      const user = await fcl.authenticate()
+      // Reauthenticate with the configured wallet (allows switching wallets)
+      const user = await fcl.reauthenticate()
       addMessage('response', `Successfully connected to ${customService.provider.name}`, 'Custom Wallet')
     } catch (error) {
       console.error('Custom wallet connection error:', error)
@@ -451,7 +451,7 @@ export default function Home() {
                         {services?.map(service => (
                           <Button 
                             key={service.provider.address}
-                            onClick={() => clickHandler(fcl.authenticate, { service })}
+                            onClick={() => clickHandler(fcl.reauthenticate, { service })}
                             variant="outline"
                             className="w-full justify-start h-16 p-4 hover:bg-accent transition-all duration-200"
                             disabled={isLoading}
