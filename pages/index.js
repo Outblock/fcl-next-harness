@@ -11,6 +11,9 @@ import { MessagePanel } from "../components/message-panel"
 import { CurrentUserPanel } from "../components/current-user-panel"
 import { MessagesPage } from "../components/messages-page"
 import { NetworkSwitcher } from "../components/network-switcher"
+import { ScriptsPage } from "../components/scripts-page"
+import { TransactionsPage } from "../components/transactions-page"
+import { SignMessagePage } from "../components/sign-message-page"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
@@ -203,6 +206,30 @@ export default function Home() {
 
   const renderCurrentPage = () => {
     switch (currentPage) {
+      case 'scripts':
+        return (
+          <ScriptsPage 
+            onCommandClick={clickHandler}
+            isLoading={isLoading}
+            onAddMessage={addMessage}
+          />
+        )
+      case 'transactions':
+        return (
+          <TransactionsPage 
+            onCommandClick={clickHandler}
+            isLoading={isLoading}
+            onAddMessage={addMessage}
+          />
+        )
+      case 'signMessage':
+        return (
+          <SignMessagePage 
+            onCommandClick={clickHandler}
+            isLoading={isLoading}
+            onAddMessage={addMessage}
+          />
+        )
       case 'messages':
         return (
           <MessagesPage 
@@ -475,6 +502,9 @@ export default function Home() {
   return (
     <MainLayout 
       title={currentPage === 'dashboard' ? 'FCL Harness Dashboard' : 
+             currentPage === 'scripts' ? 'FCL Scripts' :
+             currentPage === 'transactions' ? 'FCL Transactions' :
+             currentPage === 'signMessage' ? 'Message Signing' :
              currentPage === 'messages' ? 'Communication Messages' : 
              'User Information'}
       onCommandClick={clickHandler}
@@ -484,6 +514,9 @@ export default function Home() {
       onPageChange={setCurrentPage}
       onNetworkChange={setCurrentNetwork}
       onAddMessage={addMessage}
+      messages={messages}
+      onClearMessages={clearMessages}
+      connectionStats={connectionStats}
     >
       {renderCurrentPage()}
       {isLoading ? <Loading /> : null}
