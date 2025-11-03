@@ -334,6 +334,7 @@ export default function Home() {
             onCommandClick={clickHandler}
             isLoading={isLoading}
             onAddMessage={addMessage}
+            currentNetwork={currentNetwork}
           />
         )
       case 'signMessage':

@@ -7,7 +7,7 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Badge } from './ui/badge'
 import { Separator } from './ui/separator'
-import { Zap, CheckCircle2, AlertCircle, Loader2, Copy, Code, PlayCircle, Clock, Hash, FileText } from 'lucide-react'
+import { Zap, CheckCircle2, AlertCircle, Loader2, Copy, Code, PlayCircle, Clock, Hash, FileText, ExternalLink } from 'lucide-react'
 import * as fcl from "@onflow/fcl"
 import { COMMANDS } from '../cmds'
 
@@ -43,7 +43,13 @@ const TRANSACTION_EXAMPLES = [
   }
 ]
 
-export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
+// Get blockchain explorer URL based on network
+const getExplorerUrl = (txId, network) => {
+  const host = network === 'mainnet' ? 'mainnet.flowscan.io' : 'testnet.flowscan.io'
+  return `https://${host}/tx/${txId}`
+}
+
+export function TransactionsPage({ onCommandClick, isLoading, onAddMessage, currentNetwork = 'testnet' }) {
   const [selectedTransaction, setSelectedTransaction] = useState('mutate1')
   const [customCadence, setCustomCadence] = useState(TRANSACTION_EXAMPLES[0].cadence)
   const [customArguments, setCustomArguments] = useState('')
@@ -340,13 +346,23 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage }) {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-medium">Transaction ID</Label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(txId)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(getExplorerUrl(txId, currentNetwork), '_blank')}
+                          title="View on Flow Explorer"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(txId)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="p-3 bg-muted rounded-lg">
                       <code className="text-xs font-mono break-all">
