@@ -18,7 +18,7 @@ const TRANSACTION_EXAMPLES = [
     description: 'Basic transaction without arguments',
     cadence: `transaction() {
   prepare(signer: auth(Storage, BorrowValue) &Account) {
-    log(acct)
+    log(signer)
   }
 }`,
     arguments: [],
@@ -31,7 +31,7 @@ const TRANSACTION_EXAMPLES = [
     description: 'Transaction with parameters',
     cadence: `transaction(greeting: String) {
   prepare(signer: auth(Storage, BorrowValue) &Account) {
-    log(acct)
+    log(signer)
     log(greeting)
   }
 }`,
