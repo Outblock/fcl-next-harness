@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/lmcmz/outblock/flow-evm-rainbow/**)",
+      "Bash(bun add:*)",
+      "Bash(bunx tailwindcss init:*)",
+      "Bash(bun x tailwindcss init:*)",
+      "Bash(bun run:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
