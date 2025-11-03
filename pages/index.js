@@ -59,11 +59,11 @@ export default function Home() {
   ]
 
   const addMessage = (type, message, method = null) => {
-    const timestamp = new Date().toLocaleTimeString()
+    const timestamp = new Date().getTime() // Use timestamp instead of string
     const newMessage = {
       type,
-      message,
-      method,
+      content: message, // Change 'message' to 'content' to match main-layout
+      category: method, // Change 'method' to 'category' to match main-layout
       timestamp,
       data: typeof message === 'object' ? message : null
     }
