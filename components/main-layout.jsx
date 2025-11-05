@@ -87,7 +87,7 @@ export function MainLayout({ children, title = "FCL Harness", onCommandClick, is
   })
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex min-h-screen bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
@@ -159,22 +159,22 @@ export function MainLayout({ children, title = "FCL Harness", onCommandClick, is
       </div>
       
       {/* Main content */}
-      <div className="flex-1 flex flex-col lg:ml-0 relative">
-        <header className="border-b p-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+      <div className="flex-1 flex flex-col lg:ml-0 relative bg-background">
+        <header className="border-b p-4 flex justify-between items-center bg-background">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
             {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="sm"
-              className="lg:hidden text-foreground hover:bg-accent hover:text-accent-foreground"
+              className="lg:hidden text-foreground hover:bg-accent hover:text-accent-foreground flex-shrink-0"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
               {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-            <h1 className="text-xl md:text-2xl font-bold truncate text-foreground">{title}</h1>
+            <h1 className="text-lg md:text-xl lg:text-2xl font-bold truncate text-foreground min-w-0">{title}</h1>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {/* Message Panel Toggle */}
             <Button
               variant="ghost"
@@ -193,19 +193,22 @@ export function MainLayout({ children, title = "FCL Harness", onCommandClick, is
             {/* Network Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2 px-3 py-1 h-auto">
+              <Button variant="outline" className="flex items-center gap-2 px-2 sm:px-3 py-1 h-auto">
                 <div className={cn("w-2 h-2 rounded-full", 
                   currentNetwork === 'mainnet' ? 'bg-green-500' : 
                   currentNetwork === 'testnet' ? 'bg-orange-500' : 
                   'bg-blue-500'
                 )} />
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-sm font-medium text-foreground hidden sm:inline">
                   {networkOptions.find(n => n.name === currentNetwork)?.label || 'Unknown Network'}
+                </span>
+                <span className="text-sm font-medium text-foreground sm:hidden">
+                  {currentNetwork}
                 </span>
                 <ChevronDown className="h-3 w-3 text-foreground opacity-70" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-72 bg-background border-border">
+            <DropdownMenuContent align="end" className="w-64 sm:w-72 bg-background border-border">
               <DropdownMenuLabel className="text-foreground">Network Selection</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={currentNetwork} onValueChange={handleNetworkChange}>
@@ -238,7 +241,7 @@ export function MainLayout({ children, title = "FCL Harness", onCommandClick, is
           </DropdownMenu>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-auto min-w-0">
           {children}
         </main>
 
@@ -247,7 +250,7 @@ export function MainLayout({ children, title = "FCL Harness", onCommandClick, is
           <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setMessagePanelOpen(false)} />
         )}
         <div className={cn(
-          "fixed top-0 right-0 h-full w-96 bg-background border-l transform transition-transform z-50",
+          "fixed top-0 right-0 h-full w-full sm:w-96 bg-background border-l transform transition-transform z-50",
           messagePanelOpen ? "translate-x-0" : "translate-x-full"
         )}>
           <div className="h-full flex flex-col">

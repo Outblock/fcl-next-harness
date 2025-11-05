@@ -117,7 +117,7 @@ export function ScriptsPage({ onCommandClick, isLoading, onAddMessage }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       <div>
         <h2 className="text-lg md:text-xl font-semibold mb-2 text-foreground">
           FCL Scripts
@@ -128,7 +128,7 @@ export function ScriptsPage({ onCommandClick, isLoading, onAddMessage }) {
       </div>
 
       {/* Two-column layout */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         {/* Left Column - Script Input */}
         <div className="space-y-6">
           {/* Example Selection */}
@@ -185,7 +185,7 @@ export function ScriptsPage({ onCommandClick, isLoading, onAddMessage }) {
                     onChange={(e) => setCustomCadence(e.target.value)}
                     placeholder="Enter Cadence script code..."
                     rows={10}
-                    className="font-mono text-xs"
+                    className="font-mono text-xs sm:text-sm"
                   />
                 </div>
 
@@ -198,7 +198,7 @@ export function ScriptsPage({ onCommandClick, isLoading, onAddMessage }) {
                     onChange={(e) => setCustomArguments(e.target.value)}
                     placeholder='[{"type": "String", "value": "example"}]'
                     rows={4}
-                    className="font-mono text-xs"
+                    className="font-mono text-xs sm:text-sm"
                   />
                   <p className="text-xs text-muted-foreground">
                     Script arguments in JSON format. Each argument needs &quot;type&quot; and &quot;value&quot; fields only. Leave empty for scripts without parameters.

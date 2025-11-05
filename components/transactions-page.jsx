@@ -174,7 +174,7 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage, curr
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       <div>
         <h2 className="text-lg md:text-xl font-semibold mb-2 text-foreground">
           FCL Transactions
@@ -185,7 +185,7 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage, curr
       </div>
 
       {/* Two-column layout */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         {/* Left Column - Transaction Input */}
         <div className="space-y-6">
           {/* Example Selection */}
@@ -242,7 +242,7 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage, curr
                     onChange={(e) => setCustomCadence(e.target.value)}
                     placeholder="Enter Cadence transaction code..."
                     rows={12}
-                    className="font-mono text-xs"
+                    className="font-mono text-xs sm:text-sm"
                   />
                 </div>
 
@@ -255,7 +255,7 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage, curr
                     onChange={(e) => setCustomArguments(e.target.value)}
                     placeholder='[{"name": "param1", "type": "String", "value": "example"}]'
                     rows={4}
-                    className="font-mono text-xs"
+                    className="font-mono text-xs sm:text-sm"
                   />
                   <p className="text-xs text-muted-foreground">
                     Transaction arguments in JSON format. Leave empty for transactions without parameters.
@@ -346,7 +346,7 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage, curr
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-medium">Transaction ID</Label>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-shrink-0">
                         <Button
                           variant="ghost"
                           size="sm"

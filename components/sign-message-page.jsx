@@ -99,7 +99,7 @@ export function SignMessagePage({ onCommandClick, isLoading, onAddMessage }) {
             onChange={(e) => setCustomMessage(e.target.value)}
             placeholder="Enter a custom message to include with the signature..."
             rows={3}
-            className="font-mono text-sm"
+            className="font-mono text-xs sm:text-sm"
           />
           <p className="text-xs text-muted-foreground">
             This custom message will be included in the signature data for reference
@@ -123,7 +123,7 @@ export function SignMessagePage({ onCommandClick, isLoading, onAddMessage }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       <div>
         <h2 className="text-lg md:text-xl font-semibold mb-2 text-foreground">
           Message Signing

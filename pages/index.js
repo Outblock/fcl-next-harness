@@ -364,7 +364,7 @@ export default function Home() {
         )
       default: // dashboard
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 min-w-0">
             <div>
               <h2 className="text-lg md:text-xl font-semibold mb-2 text-foreground">
                 FCL Harness Dashboard
@@ -375,7 +375,7 @@ export default function Home() {
             </div>
 
             {/* Status Overview */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2">
@@ -447,7 +447,7 @@ export default function Home() {
                 <CardContent>
                   {(services?.length > 0 || customWalletServices?.length > 0) ? (
                     <>
-                      <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         {/* Discovered Services */}
                         {services?.map(service => (
                           <Button 
@@ -467,8 +467,8 @@ export default function Home() {
                                   className="rounded"
                                 />
                               </div>
-                              <div className="text-left flex-1">
-                                <div className="font-semibold text-foreground">{service.provider.name}</div>
+                              <div className="text-left flex-1 min-w-0">
+                                <div className="font-semibold text-foreground truncate">{service.provider.name}</div>
                                 <div className="text-xs text-muted-foreground">FCL Discovery Service</div>
                               </div>
                             </div>
@@ -490,8 +490,8 @@ export default function Home() {
                                     <Wallet className="h-4 w-4 text-white" />
                                   </div>
                                 </div>
-                                <div className="text-left flex-1">
-                                  <div className="font-semibold text-foreground">{service.provider.name}</div>
+                                <div className="text-left flex-1 min-w-0">
+                                  <div className="font-semibold text-foreground truncate">{service.provider.name}</div>
                                   <div className="text-xs text-muted-foreground">
                                     Custom • {service.strategy || 'POP/RPC'}
                                   </div>
@@ -656,7 +656,7 @@ export default function Home() {
                           Copy
                         </Button>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           variant="outline"
                           size="sm"
