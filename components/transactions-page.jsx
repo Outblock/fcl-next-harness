@@ -125,7 +125,9 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage, curr
         try {
           args = JSON.parse(customArguments)
         } catch (parseError) {
-          throw new Error('Invalid JSON format in arguments')
+          console.error('JSON parsing error in arguments:', parseError)
+          console.log('Arguments string:', customArguments)
+          throw new Error(`Invalid JSON format in arguments: ${parseError.message}`)
         }
       }
 
@@ -134,7 +136,7 @@ export function TransactionsPage({ onCommandClick, isLoading, onAddMessage, curr
       // Execute the transaction using FCL mutate
       const mutateConfig = {
         cadence: customCadence,
-        gasLimit: gasLimit
+        limit: gasLimit
       }
 
       // Only add args if there are any

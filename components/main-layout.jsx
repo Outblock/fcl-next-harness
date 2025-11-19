@@ -18,19 +18,36 @@ export function MainLayout({ children, title = "FCL Harness", onCommandClick, is
       name: 'mainnet',
       label: 'Flow Mainnet',
       accessNode: 'https://rest-mainnet.onflow.org',
-      discoveryWallet: 'https://fcl-discovery.onflow.org/authn'
+      discoveryWallet: 'https://fcl-discovery.onflow.org/authn',
+      chainId: null
     },
     {
       name: 'testnet', 
       label: 'Flow Testnet',
       accessNode: 'https://rest-testnet.onflow.org',
-      discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn'
+      discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn',
+      chainId: null
+    },
+    {
+      name: 'flow-evm-mainnet',
+      label: 'Flow EVM Mainnet',
+      accessNode: 'https://mainnet.evm.nodes.onflow.org',
+      discoveryWallet: 'https://fcl-discovery.onflow.org/authn',
+      chainId: 545 // 0x221
+    },
+    {
+      name: 'flow-evm-testnet',
+      label: 'Flow EVM Testnet',
+      accessNode: 'https://testnet.evm.nodes.onflow.org',
+      discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn',
+      chainId: 747 // 0x2EB
     },
     {
       name: 'local',
       label: 'Local Emulator',
       accessNode: 'http://localhost:8888',
-      discoveryWallet: 'http://localhost:8701/fcl/authn'
+      discoveryWallet: 'http://localhost:8701/fcl/authn',
+      chainId: null
     }
   ]
 
@@ -62,12 +79,19 @@ export function MainLayout({ children, title = "FCL Harness", onCommandClick, is
           const fcl = await import('@onflow/fcl')
           
           // Configure network settings
-          fcl.config({
+          const config = {
             'flow.network': networkName,
             'accessNode.api': network.accessNode,
             'discovery.wallet': network.discoveryWallet,
             'discovery.authn.endpoint': network.discoveryWallet
-          })
+          }
+          
+          // Add EVM chain configuration if chainId exists
+          if (network.chainId) {
+            config['flow.evm.chainId'] = network.chainId
+          }
+          
+          fcl.config(config)
           
           onNetworkChange(networkName)
           onAddMessage?.('response', `Successfully switched to ${network.label}`, 'Network Switch')
@@ -197,6 +221,8 @@ export function MainLayout({ children, title = "FCL Harness", onCommandClick, is
                 <div className={cn("w-2 h-2 rounded-full", 
                   currentNetwork === 'mainnet' ? 'bg-green-500' : 
                   currentNetwork === 'testnet' ? 'bg-orange-500' : 
+                  currentNetwork === 'flow-evm-mainnet' ? 'bg-emerald-500' :
+                  currentNetwork === 'flow-evm-testnet' ? 'bg-yellow-500' :
                   'bg-blue-500'
                 )} />
                 <span className="text-sm font-medium text-foreground hidden sm:inline">

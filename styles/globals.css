@@ -54,7 +54,7 @@
     @apply border-border;
   }
   html {
-    @apply bg-background;
+    @apply bg-foreground;
   }
   body {
     @apply bg-background text-foreground;

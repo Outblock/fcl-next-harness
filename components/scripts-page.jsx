@@ -72,7 +72,9 @@ export function ScriptsPage({ onCommandClick, isLoading, onAddMessage }) {
         try {
           args = JSON.parse(customArguments)
         } catch (parseError) {
-          throw new Error('Invalid JSON format in arguments')
+          console.error('JSON parsing error in arguments:', parseError)
+          console.log('Arguments string:', customArguments)
+          throw new Error(`Invalid JSON format in arguments: ${parseError.message}`)
         }
       }
 

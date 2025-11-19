@@ -14,18 +14,18 @@ const SIGN_METHODS = [
   {
     id: 'user_signature_1',
     name: 'FCL User Signature 1',
-    description: 'Flow blockchain user signature method 1',
+    description: 'Flow blockchain user signature method 1 (no verification)',
     type: 'fcl',
     category: 'fcl',
-    command: 'User Signature 1'
+    command: 'User Sign 1 (No Verification)'
   },
   {
     id: 'user_signature_2',
     name: 'FCL User Signature 2', 
-    description: 'Flow blockchain user signature method 2',
+    description: 'Flow blockchain user signature method 2 (with verification)',
     type: 'fcl',
     category: 'fcl',
-    command: 'User Signature 2'
+    command: 'User Sign & Verify'
   }
 ]
 
@@ -38,7 +38,7 @@ export function SignMessagePage({ onCommandClick, isLoading, onAddMessage }) {
 
   const currentMethod = SIGN_METHODS.find(m => m.id === selectedMethod)
   const signMessageCommands = COMMANDS.filter(cmd => 
-    ['User Signature 1', 'User Signature 2'].includes(cmd.LABEL)
+    ['User Sign 1 (No Verification)', 'User Sign & Verify'].includes(cmd.LABEL)
   )
 
   const handleSignMessage = async () => {

@@ -287,7 +287,8 @@ export default function Home() {
         try {
           messageData = JSON.parse(messageData)
         } catch (e) {
-          // Keep as string if not JSON
+          // Keep as string if not JSON - log for debugging
+          console.warn('Failed to parse message data as JSON:', messageData)
         }
       }
       
