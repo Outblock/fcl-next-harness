@@ -110,8 +110,10 @@ export default function Home() {
       addMessage('request', `Executing command...`, 'FCL Command')
       const result = await fn(args)
       addMessage('response', result || 'Command completed successfully', 'FCL Command')
+      return result
     } catch (error) {
       addMessage('error', error.message || 'Command failed', 'FCL Command')
+      throw error
     } finally {
       setIsLoading(false)
     }

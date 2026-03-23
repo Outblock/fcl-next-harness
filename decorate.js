@@ -1,7 +1,7 @@
 import * as fcl from "@onflow/fcl"
 
-window.fcl = fcl
-window.t = fcl.t
+try { Object.defineProperty(window, 'fcl', { value: fcl, writable: true, configurable: true }) } catch(e) { /* already defined */ }
+try { Object.defineProperty(window, 't', { value: fcl.t, writable: true, configurable: true }) } catch(e) { /* already defined */ }
 
 window.addEventListener("FLOW::TX", d => {
   console.log("FLOW::TX", d.detail.delta, d.detail.txId)

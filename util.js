@@ -5,7 +5,7 @@ export function serviceOfType(services = [], type) {
 }
 
 export const success = tag => data => (
-  console.log(`${tag}`, data), `success - ${tag}`
+  console.log(`${tag}`, data), data
 )
 export const fail = tag => data => (
   console.error(`Oh No!! [${tag}]`, data), `fail - ${tag}`

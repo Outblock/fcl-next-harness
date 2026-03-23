@@ -1,6 +1,7 @@
 import * as fcl from "@onflow/fcl"
 
 const USE_LOCAL = false
+const USE_PASSKEY_WALLET = true // Flow Dev Wallet on localhost:3003
 const resolver = async () => ({
   appIdentifier: "Awesome App (v0.0)",
   nonce: "3037366134636339643564623330316636626239323161663465346131393662",
@@ -25,7 +26,15 @@ fcl
 // storage override
 //.put("fcl.storage", LOCAL_STORAGE)
 
-if (USE_LOCAL) {
+if (USE_PASSKEY_WALLET) {
+  // FlowIndex passkey wallet — testnet with local wallet popup
+  fcl
+    .config()
+    .put("flow.network", "testnet")
+    .put("accessNode.api", "https://rest-testnet.onflow.org")
+    .put("discovery.wallet", "http://localhost:3003/authn")
+    .put("discovery.wallet.method", "POP/RPC")
+} else if (USE_LOCAL) {
   // prettier-ignore
   fcl
     .config()

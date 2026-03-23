@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import * as fcl from '@onflow/fcl'
+import { Buffer } from 'buffer'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
@@ -49,25 +51,20 @@ export function SignMessagePage({ onCommandClick, isLoading, onAddMessage }) {
     setLastSignedData(null)
 
     try {
-      let result
-      let signedData = null
+      // Sign the custom message directly with FCL
+      const msgHex = Buffer.from(customMessage).toString('hex')
+      const signatures = await fcl.currentUser().signUserMessage(msgHex)
 
-      // Use FCL user signature based on selected method
-      const cmd = signMessageCommands.find(c => c.LABEL === currentMethod?.command)
-      if (cmd) {
-        result = await onCommandClick(cmd.CMD)
-        signedData = { 
+      if (signatures && signatures.length > 0) {
+        setLastSignature(JSON.stringify(signatures, null, 2))
+        setLastSignedData({
           method: currentMethod?.name,
-          command: currentMethod?.command,
-          message: customMessage
-        }
-      }
-
-      if (result) {
-        setLastSignature(result)
-        setLastSignedData(signedData)
+          message: customMessage,
+          messageHex: msgHex,
+          signatures,
+        })
         setSignMessageStatus('success')
-        onAddMessage?.('response', `Signature created: ${result}`, 'Sign Message')
+        onAddMessage?.('response', `Signed with ${signatures.length} signature(s)`, 'Sign Message')
       } else {
         throw new Error('No signature result received')
       }
